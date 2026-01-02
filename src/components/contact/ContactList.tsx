@@ -2,43 +2,57 @@ import { useState, useEffect } from "react";
 import AxiosApi from "@/lib/axios";
 
 type ContactList = {
-	contact_user_id: string;
+	contact_list_id: number;
+	contact_user_id: number;
 	contact_user_name: string;
 	mute: number;
+	is_saved: number;
 };
 
 export default function ContactList() {
 	const [search, setSearch] = useState("");
 	let [contactsList, setContactsList] = useState<ContactList[]>([]);
-	const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+	const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
-	const toggleMute = async (contactId: string, mute: number) => {
+	const toggleMute = async (contact_list_id: number, contactId: number, mute: number) => {
 		try {
-			await AxiosApi.post("/api/contact/mute", {
+			const response = await AxiosApi.post("/api/contact/mute", {
+				contact_list_id: contact_list_id,
 				contact_id: contactId,
 				mute: mute ? 0 : 1,
 			});
 
-			setContactsList((prev) =>
-				prev.map((c) =>
-					c.contact_user_id === contactId
-						? { ...c, mute: mute ? 0 : 1 }
-						: c
-				)
-			);
+			const status = await response.data.status;
+
+			if (status) {
+				setContactsList((prev) =>
+					prev.map((c) =>
+						c.contact_user_id === contactId
+							? { ...c, mute: mute ? 0 : 1 }
+							: c
+					)
+				);
+			}
 		} catch (err) {
 			console.error(err);
 		}
 	};
 
-	const deleteContact = async (contactId: string) => {
+	const deleteContact = async (contact_list_id: number, contactId: number, deleted: number) => {
 		if (!confirm("Are you sure you want to delete this contact?")) return;
 
 		try {
-			await AxiosApi.delete(`/api/contact/delete/${contactId}`);
-			setContactsList((prev) =>
-				prev.filter((c) => c.contact_user_id !== contactId)
-			);
+			const response = await AxiosApi.post(`/api/contact/delete`, {
+				contact_list_id: contact_list_id,
+				contact_id: contactId,
+				deleted: deleted ? 0 : 1,
+			});
+			console.log(response);
+			if (response.data.status) {
+				setContactsList((prev) =>
+					prev.filter((c) => c.contact_user_id !== contactId)
+				);
+			}
 		} catch (err) {
 			console.error(err);
 		}
@@ -123,7 +137,7 @@ export default function ContactList() {
 							<div className="absolute right-4 top-14 w-40 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg shadow-md z-10">
 								<button
 									onClick={() =>
-										toggleMute(contact.contact_user_id, contact.mute)
+										toggleMute(contact.contact_list_id ,contact.contact_user_id, contact.mute)
 									}
 									className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-700"
 								>
@@ -132,7 +146,7 @@ export default function ContactList() {
 
 								<button
 									onClick={() =>
-										deleteContact(contact.contact_user_id)
+										deleteContact(contact.contact_list_id ,contact.contact_user_id, contact.is_saved)
 									}
 									className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
 								>
