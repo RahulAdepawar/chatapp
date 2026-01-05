@@ -3,6 +3,7 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { CgMenuMotion } from "react-icons/cg";
 import ContactList from "./chats/ContactList";
 import ContactMenu from "./contact/ContactMenu";
+import TasksMenu from "./tasks/TasksMenu";
 import SettingsMenu from "./settings/SettingsMenu";
 import { CiChat1 } from "react-icons/ci";
 
@@ -24,7 +25,10 @@ export default function Sidebar({ onMenuSelect, onSelectContact, selectedContact
 
 			{isOpenSideBarOption &&
 				(isOpenSideBarOption.SideBarOption === 'Menu' ? (
-					<ContactMenu onMenuSelect={onMenuSelect} />
+					<>
+						<ContactMenu onMenuSelect={onMenuSelect} />
+						<TasksMenu onMenuSelect={onMenuSelect} />
+					</>
 				) : isOpenSideBarOption.SideBarOption === 'Chats' ? (
 					<ContactList onMenuSelect={onMenuSelect} onSelectContact={onSelectContact} selectedContactId={selectedContactId} />
 				) : isOpenSideBarOption.SideBarOption === 'Setting' ? (

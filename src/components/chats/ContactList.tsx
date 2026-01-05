@@ -38,8 +38,9 @@ export default function ContactList({ onMenuSelect, onSelectContact, selectedCon
 	/* -------------------- SOCKET CONNECT -------------------- */
 	useEffect(() => {
 		if (!socket.connected) socket.connect();
+
 		return () => {
-			socket.off();
+			socket.off(); // optional
 		};
 	}, []);
 

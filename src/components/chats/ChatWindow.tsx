@@ -8,6 +8,7 @@ import { TiArrowBack } from "react-icons/ti";
 import CreateTaskModal from "../CreateTaskModal";
 import ImagePreview from "../ImagePreview";
 import { playNotificationSound } from "@/utils/sound";
+import ProfileDrawer from "./ContactProfile";
 
 /* -------------------- TYPES -------------------- */
 type Attachment = {
@@ -28,6 +29,9 @@ type Message = {
 type ContactDetail = {
 	contact_user_id: number;
 	contact_user_name: string;
+	email?: string;
+	mobile?: string;
+	profile_image?: string;
 };
 
 /* -------------------- COMPONENT -------------------- */
@@ -38,6 +42,7 @@ export default function ChatWindow({
 	contactId: number;
 	onBack: () => void;
 }) {
+	let typingTimeout1: number;
 
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [newMessage, setNewMessage] = useState("");
@@ -52,6 +57,8 @@ export default function ChatWindow({
 	const bottomRef = useRef<HTMLDivElement | null>(null);
 
 	const currentUserId = Number(localStorage.getItem("user_id"));
+
+	const [openProfileDrawer, setOpenProfileDrawer] = useState(false);
 
 	const getRoomId = (a: number, b: number) =>
 		[a, b].sort((x, y) => x - y).join("_");
@@ -118,7 +125,6 @@ export default function ChatWindow({
 			);
 
 			// ✔ delivered
-			console.log("isIncoming", isIncoming)
 			if (isIncoming) {
 				playNotificationSound();
 
@@ -229,10 +235,26 @@ export default function ChatWindow({
 		setMessages((prev) =>
 			prev.some((m) => m.id === savedMessage.id) ? prev : [...prev, savedMessage]
 		);
+
 		setNewMessage("");
 		setSelectedFiles([]);
 	};
 
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			handleSendMessage();
+		}
+	};
+
+	function handleTyping(roomId: string) {
+		socket.emit("typing", { roomId });
+
+		clearTimeout(typingTimeout1);
+		typingTimeout1 = setTimeout(() => {
+			socket.emit("stop_typing", { roomId });
+		}, 800);
+	}
 
 	/* -------------------- SCROLL ON NEW MESSAGES -------------------- */
 	useEffect(() => {
@@ -245,19 +267,34 @@ export default function ChatWindow({
 		<div className="flex flex-col h-full bg-white dark:bg-[#0c1618] text-black dark:text-white">
 			{/* Header */}
 			<div className="flex items-center gap-3 p-3 border-b border-gray-200 dark:border-white/10">
-				<button onClick={onBack}><TiArrowBack size={22} /></button>
-				<p className="font-semibold flex-1">
+				<button onClick={onBack}>
+					<TiArrowBack size={22} />
+				</button>
+
+				{/* CLICK NAME TO OPEN DRAWER */}
+				<button
+					onClick={() => setOpenProfileDrawer(true)}
+					className="font-semibold flex-1 text-left"
+				>
 					{contactDetail?.contact_user_name}
-				</p>
+				</button>
+
 				<button onClick={() => setOpenTaskModal(true)}>
 					<FaPlus />
 				</button>
+
+				{contactDetail ? (
+					<ProfileDrawer
+						open={openProfileDrawer}
+						onClose={() => setOpenProfileDrawer(false)}
+						contact={contactDetail}
+					/>
+				) : ""}
 			</div>
 
 			{/* Messages */}
 			<div className="flex-1 overflow-y-auto p-3 space-y-3">
 				{messages.map((msg) => {
-					console.log("msg", msg)
 					const isIncoming = msg.sender_id === contactId;
 
 					const msg_time = new Date(msg.created_at).toLocaleTimeString("en-US", {
@@ -280,8 +317,8 @@ export default function ChatWindow({
 							<div className="max-w-xs">
 								<div
 									className={`relative rounded p-2 ${isIncoming
-											? "bg-gray-200 dark:bg-neutral-800"
-											: "bg-[oklch(0.34_0.08_223.84)] text-white"
+										? "bg-gray-200 dark:bg-neutral-800"
+										: "bg-[oklch(0.34_0.08_223.84)] text-white"
 										}`}
 								>
 									{/* Message text */}
@@ -312,10 +349,10 @@ export default function ChatWindow({
 										{!isIncoming && (
 											<span
 												className={`text-xs ${msg.status === "read"
-														? "text-blue-400"
-														: msg.status === "delivered"
-															? "text-white/70"
-															: "text-white/50"
+													? "text-blue-400"
+													: msg.status === "delivered"
+														? "text-white/70"
+														: "text-white/50"
 													}`}
 											>
 												{msg.status === "sent" ? "✔" : "✔✔"}
@@ -391,7 +428,14 @@ export default function ChatWindow({
 
 				<textarea
 					value={newMessage}
-					onChange={handleInputChange}
+					onChange={(e) => {
+						const roomId = getRoomId(currentUserId, contactId);
+						handleTyping(roomId);
+
+						handleInputChange(e);
+					}}
+					onKeyDown={handleKeyDown}
+					placeholder="Type here...."
 					className="flex-1 rounded bg-gray-100 dark:bg-[#121d20] px-2 py-1"
 				/>
 

@@ -42,7 +42,7 @@ const AddContact = () => {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-black px-4">
+		<div className="min-h-screen flex items-center justify-center px-4">
 			<div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-6 sm:p-8">
 				<h2 className="text-2xl font-semibold text-gray-800 dark:text-white text-center mb-6">
 					Add New Contact

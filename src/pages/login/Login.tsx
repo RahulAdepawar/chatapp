@@ -67,8 +67,9 @@ export default function Login() {
 
 		try {
 			let response = await AxiosApi.post("/api/login", form);
+			let result = await response.data;
 
-			if (response.status == 200) {
+			if (result.success) {
 				localStorage.setItem("user_id", response.data.user_id);
 
 				setError("");
