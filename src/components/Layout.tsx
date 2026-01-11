@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import AddContact from "./contact/AddContact";
 import ContactList from "./contact/ContactList";
-import TasksReceivedPage from "./tasks/TaskReceived";
+import TasksReceivedPage from "./tasks/TasksReceived";
 import TasksAssignedByMePage from "./tasks/TasksAssignedByMe";
 import Profile from "./settings/Profile";
 import ChatWindow from "./chats/ChatWindow";
@@ -14,7 +14,7 @@ export default function Layout() {
 	const [selectedContactId, setselectedContactId] = useState();
 
 	return (
-		<div className="h-screen flex bg-gray-100 dark:bg-neutral-900 overflow-hidden">
+		<div className="h-screen flex bg-[#1b0429] dark:bg-[#1b0429] overflow-hidden">
 			{/* Sidebar */}
 			<div
 				className={`w-full md:w-72 border-r border-gray-200 dark:border-neutral-700
@@ -30,7 +30,7 @@ export default function Layout() {
 
 			{/* Content */}
 			<div
-				className={`flex-1 h-full dark:bg-[#0c1618] text-black dark:text-white
+				className={`flex-1 h-full bg-white dark:bg-[#1b0429] text-black dark:text-white
 						${view ? "block" : "hidden md:block"}
 				`}
 			>
@@ -95,6 +95,5 @@ export default function Layout() {
 
 			</div>
 		</div>
-
 	);
 }

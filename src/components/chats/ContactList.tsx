@@ -14,6 +14,7 @@ type ContactList = {
 	pending: number;
 	last_sender_id: number;
 	last_message: string;
+	last_time: Date;
 };
 
 interface Props {
@@ -34,24 +35,61 @@ type Message = {
 export default function ContactList({ onMenuSelect, onSelectContact, selectedContactId }: Props) {
 	const [contactsList, setContactsList] = useState<ContactList[]>([]);
 	const [selected_contact_id, setSelectedContactId] = useState<number | null>(null);
+	let [newMessage, setNewMessage] = useState(0);
 
 	/* -------------------- SOCKET CONNECT -------------------- */
 	useEffect(() => {
-		if (!socket.connected) socket.connect();
+		const connectSocket = () =>
+			new Promise((resolve, reject) => {
+				if (socket.connected) {
+					return resolve(socket);
+				}
+
+				socket.connect();
+
+				socket.once("connect", () => {
+					let userId = localStorage.getItem("user_id");
+					socket.emit("join_user", userId);
+					resolve(socket);
+				});
+
+				socket.once("connect_error", (err) => {
+					reject(err);
+				});
+			});
+
+
+		connectSocket().then(() => {
+			console.log("socket.connected in promise", socket.connected);
+		}).catch(console.error);
 
 		return () => {
-			socket.off(); // optional
+			// socket.off(); // optional
 		};
 	}, []);
 
 	/* -------------------- FETCH CONTACTS -------------------- */
 	useEffect(() => {
+
 		const fetchContacts = async () => {
 			const res = await AxiosApi.get("/api/get_contacts");
 			setContactsList(res.data.data);
 		};
 		fetchContacts();
+	}, [newMessage]);
+
+	useEffect(() => {
+		const handleNewMessage = () => {
+			setNewMessage((prev) => prev + 1);
+		};
+
+		socket.on("new_message", handleNewMessage);
+
+		return () => {
+			socket.off("new_message", handleNewMessage);
+		};
 	}, []);
+
 
 	/* -------------------- SOCKET MESSAGE LISTENER -------------------- */
 	useEffect(() => {
@@ -105,6 +143,7 @@ export default function ContactList({ onMenuSelect, onSelectContact, selectedCon
 		);
 	}
 
+
 	return (
 		<ul className="divide-y divide-gray-200 dark:divide-neutral-700 overflow-y-auto pb-24">
 			{contactsList.map(contact => {
@@ -145,21 +184,31 @@ export default function ContactList({ onMenuSelect, onSelectContact, selectedCon
 									{contact.contact_user_name}
 								</span>
 
+								{contact.last_time && (
+									<span className="text-xs text-gray-400 whitespace-nowrap">
+										{new Date(contact.last_time).toLocaleTimeString("en-IN", {
+											hour: "2-digit",
+											minute: "2-digit",
+										})}
+									</span>
+								)}
+							</div>
+
+							<div
+								className={`flex justify-between text-sm truncate ${pendingCount > 0 && isIncomingLast
+									? "font-semibold text-gray-900 dark:text-gray-100"
+									: "text-gray-500 dark:text-neutral-400"
+									}`}
+							>
+								<span>
+									{contact.last_message || "No messages yet"}
+								</span>
 								{pendingCount > 0 && (
 									<span className="min-w-[20px] h-5 px-2 text-xs rounded-full bg-blue-600 text-white flex items-center justify-center">
 										{pendingCount}
 									</span>
 								)}
 							</div>
-
-							<p
-								className={`text-sm truncate ${pendingCount > 0 && isIncomingLast
-									? "font-semibold text-gray-900 dark:text-gray-100"
-									: "text-gray-500 dark:text-neutral-400"
-									}`}
-							>
-								{contact.last_message || "No messages yet"}
-							</p>
 						</div>
 					</li>
 				);

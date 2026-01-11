@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import AxiosApi from "@/lib/axios";
 import { validate_email } from "@/utils/validation";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
 
@@ -12,6 +13,8 @@ export default function Login() {
 	const [loading, setLoading] = useState(false);
 	let [error, setError] = useState("");
 	let [success, setSuccess] = useState("");
+
+	let [showPassword, setShowPassword] = useState(false);
 
 	// Check use is already login
 	useEffect(() => {
@@ -111,19 +114,26 @@ export default function Login() {
 						/>
 					</div>
 
-					<div>
-						<label className="block text-sm font-medium mb-1">
-							Password
-						</label>
+					<div className="relative">
 						<input
-							type="password"
+							type={showPassword ? "text" : "password"}
 							name="password"
 							value={form.password}
 							onChange={handleChange}
 							required
-							className="w-full px-4 py-2 border  focus:ring-2 focus:ring-indigo-500 focus:outline-none"
 							placeholder="••••••••"
+							className="w-full px-4 py-2 pr-12 border rounded-lg
+							focus:ring-2 focus:ring-indigo-500 focus:outline-none"
 						/>
+
+						<button
+							type="button"
+							onClick={() => setShowPassword(!showPassword)}
+							className="absolute right-3 top-1/2 -translate-y-1/2
+							text-gray-500 hover:text-indigo-600"
+						>
+							{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+						</button>
 					</div>
 
 					<div className="flex items-center justify-between text-sm">
@@ -131,7 +141,7 @@ export default function Login() {
 							<input type="checkbox" className="rounded" />
 							Remember me
 						</label>
-						<a href="#" className="text-indigo-600 hover:underline">
+						<a href="#" className="purple hover:underline">
 							Forgot password?
 						</a>
 					</div>
@@ -139,7 +149,7 @@ export default function Login() {
 					<button
 						type="submit"
 						disabled={loading}
-						className="w-full py-2  bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+						className="w-full py-2 purple text-white font-semibold"
 					>
 						{loading ? "Signing in..." : "Sign In"}
 					</button>
@@ -150,7 +160,7 @@ export default function Login() {
 
 				<p className="text-center text-sm mt-6">
 					Don’t have an account?{" "}
-					<Link to={"/registration"} className="text-indigo-600 font-medium hover:underline">Sign up</Link>
+					<Link to={"/registration"} className="purple font-medium hover:underline">Sign up</Link>
 				</p>
 			</div>
 		</div>

@@ -17,7 +17,7 @@ export default function Sidebar({ onMenuSelect, onSelectContact, selectedContact
 	const [isOpenSideBarOption, setIsOpenSideBarOption] = useState<SideBarOption | null>({ name: "Chats", SideBarOption: "Chats" })
 
 	return (
-		<div className="h-full bg-white text-gray-900 border-r border-gray-200 bg-[#0c1618] dark:bg-[#0c1618] dark:text-gray-100 dark:border-neutral-700 relative">
+		<div className="h-full bg-white text-gray-900 border-r border-gray-200 bg-[#0c1618] dark:bg-[#1b0429] dark:text-gray-100 dark:border-neutral-700 relative">
 			{/* Header */}
 			<div className="p-4 font-bold border-b border-gray-200 dark:border-neutral-700">
 				{isOpenSideBarOption && isOpenSideBarOption.name}

@@ -190,7 +190,7 @@ export default function Registration() {
 					<button
 						type="submit"
 						disabled={loading}
-						className="w-full py-2 bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+						className="w-full py-2 purple text-white font-semibold"
 					>
 						{loading ? "Signing Up..." : "Sign Up"}
 					</button>
@@ -202,7 +202,7 @@ export default function Registration() {
 
 				<p className="text-center text-sm mt-6">
 					Already have an account?{" "}
-					<Link to={"/login"} className="text-indigo-600 font-medium hover:underline">Sign in</Link>
+					<Link to={"/login"} className="purple font-medium hover:underline">Sign in</Link>
 				</p>
 			</div>
 		</div>

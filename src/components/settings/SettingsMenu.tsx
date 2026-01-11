@@ -2,7 +2,7 @@ import { CgProfile } from "react-icons/cg";
 import { BiSolidLogOut } from "react-icons/bi";
 import AxiosApi from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
-import { askForNotifications } from "@/utils/notifications";
+import { requestNotificationPermission } from "@/utils/notifications";
 import { MdNotificationsActive } from "react-icons/md";
 
 interface Props {
@@ -36,7 +36,7 @@ export default function SettingsMenu({ onMenuSelect }: Props) {
 				<CgProfile className="text-xl text-gray-600 dark:text-gray-300" />
 				<span>Profile</span>
 			</li>
-			<li onClick={askForNotifications} className="p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-800 flex items-center gap-3">
+			<li onClick={requestNotificationPermission} className="p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-800 flex items-center gap-3">
 				<MdNotificationsActive className="text-xl" />
 				<span>Enable Notifications</span>
 			</li>

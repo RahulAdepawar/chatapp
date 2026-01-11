@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import AxiosApi from "@/lib/axios";
+import ErrorPopup from "../ErrorPopup";
+import ImageCropper from "@/ImageCropper";
 
 interface ProfileData {
 	username: string;
@@ -20,6 +22,9 @@ export default function Profile() {
 	const [preview, setPreview] = useState<string | null>(null);
 
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
+	const [error, setError] = useState<string | null>(null);
+
+	const [cropImage, setCropImage] = useState<string | null>(null);
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -36,14 +41,34 @@ export default function Profile() {
 		setProfile({ ...profile, [e.target.name]: e.target.value });
 	};
 
-	const handleFileChange = async (
-		e: React.ChangeEvent<HTMLInputElement>
-	) => {
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const MAX_SIZE = 1 * 1024 * 1024;
+
 		const file = e.target.files?.[0];
 		if (!file) return;
 
-		// ✅ Instant preview
-		setPreview(URL.createObjectURL(file));
+		e.target.value = "";
+
+		if (file.size > MAX_SIZE) {
+			setError("Image size must be less than 1MB");
+			e.target.value = "";
+			return;
+		}
+
+		if (!file.type.startsWith("image/")) {
+			setError("Only image files are allowed");
+			e.target.value = "";
+			return;
+		}
+
+		const imageUrl = URL.createObjectURL(file);
+		setCropImage(imageUrl);
+	};
+
+	const handleCropDone = async (file: File) => {
+		// Show preview
+		const previewUrl = URL.createObjectURL(file);
+		setPreview(previewUrl);
 
 		const formData = new FormData();
 		formData.append("profile_image", file);
@@ -55,29 +80,37 @@ export default function Profile() {
 				{ headers: { "Content-Type": "multipart/form-data" } }
 			);
 
-			// ✅ Update profile image from backend response
 			setProfile((prev) => ({
 				...prev,
 				profile_image: res.data.image,
 			}));
 		} catch (err) {
-			console.error("Upload failed", err);
+			setError("Image upload failed");
+		} finally {
+			setCropImage(null);
 		}
 	};
+
+	useEffect(() => {
+		return () => {
+			if (preview) URL.revokeObjectURL(preview);
+			if (cropImage) URL.revokeObjectURL(cropImage);
+		};
+	}, [preview, cropImage]);
 
 	const handleSave = () => {
 		setIsEditing(false);
 	};
 
 	return (
-		<div className="h-full w-full flex flex-col bg-gray-50 dark:bg-neutral-900 dark:bg-black dark:text-white">
+		<div className="h-full w-full flex flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between px-6 py-4">
 				<h2 className="text-lg font-semibold"> Profile</h2>
 				{!isEditing && (
 					<button
 						onClick={() => setIsEditing(true)}
-						className="px-4 py-2 bg-indigo-600 rounded-lg"
+						className="px-4 py-2 purple rounded-lg"
 					>
 						Edit
 					</button>
@@ -92,7 +125,11 @@ export default function Profile() {
 						<div className="w-36 h-36 rounded-full overflow-hidden bg-indigo-600 flex items-center justify-center">
 							{preview || profile.profile_image ? (
 								<img
-									src={`${import.meta.env.VITE_SERVER_ORIGIN}${profile.profile_image}`}
+									src={
+										preview
+											? preview
+											: `${import.meta.env.VITE_SERVER_ORIGIN}${profile.profile_image}`
+									}
 									className="w-full h-full object-cover"
 								/>
 							) : (
@@ -111,12 +148,27 @@ export default function Profile() {
 							onChange={handleFileChange}
 						/>
 
-						<button
+						<a
 							onClick={() => fileInputRef.current?.click()}
-							className="mt-4 text-sm text-indigo-600 hover:underline"
+							className="mt-4 text-sm purple hover:underline"
 						>
 							Change photo
-						</button>
+						</a>
+
+						{error && (
+							<ErrorPopup
+								message={error}
+								onClose={() => setError(null)}
+							/>
+						)}
+
+						{cropImage && (
+							<ImageCropper
+								image={cropImage}
+								onCropDone={handleCropDone}
+								onCancel={() => setCropImage(null)}
+							/>
+						)}
 					</div>
 
 					{/* Fields */}

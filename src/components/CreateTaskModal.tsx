@@ -203,7 +203,7 @@ export default function CreateTaskModal({ contactId, onClose }: Props) {
 					<button
 						onClick={handleCreateTask}
 						disabled={loading}
-						className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+						className="px-4 py-2 rounded purple text-white disabled:opacity-50"
 					>
 						{loading ? "Creating..." : "Create"}
 					</button>

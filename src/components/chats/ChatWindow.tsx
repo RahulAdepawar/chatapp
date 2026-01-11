@@ -76,7 +76,7 @@ export default function ChatWindow({
 	useEffect(() => {
 		if (!socket.connected) socket.connect();
 		return () => {
-			socket.off();
+			// socket.off();
 		};
 	}, []);
 
@@ -229,15 +229,15 @@ export default function ChatWindow({
 		formData.append("message", newMessage);
 		selectedFiles.forEach((f) => formData.append("attachments", f));
 
+		setNewMessage("");
+		setSelectedFiles([]);
+
 		const res = await AxiosApi.post("/api/send_message", formData);
 		const savedMessage = normalizeMessage(res.data.data);
 
 		setMessages((prev) =>
 			prev.some((m) => m.id === savedMessage.id) ? prev : [...prev, savedMessage]
 		);
-
-		setNewMessage("");
-		setSelectedFiles([]);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -247,20 +247,30 @@ export default function ChatWindow({
 		}
 	};
 
+	/* -------------------- SCROLL ON NEW MESSAGES -------------------- */
+	useEffect(() => {
+		bottomRef.current?.scrollIntoView();
+	}, [messages, isTyping]);
+
+
 	function handleTyping(roomId: string) {
 		socket.emit("typing", { roomId });
 
 		clearTimeout(typingTimeout1);
 		typingTimeout1 = setTimeout(() => {
 			socket.emit("stop_typing", { roomId });
-		}, 800);
+		}, 1000);
 	}
 
-	/* -------------------- SCROLL ON NEW MESSAGES -------------------- */
 	useEffect(() => {
-		bottomRef.current?.scrollIntoView();
-	}, [messages, isTyping]);
+		if (!isTyping) return;
 
+		const timeout = setTimeout(() => {
+			setIsTyping(false);
+		}, 2000);
+
+		return () => clearTimeout(timeout);
+	}, [isTyping]);
 
 	/* -------------------- UI -------------------- */
 	return (
